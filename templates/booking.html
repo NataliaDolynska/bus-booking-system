@@ -1,0 +1,285 @@
+{% extends "_base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="form-container py-8">
+            <form id="search-form">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+                    <!-- Group Size Input (Required) -->
+                    <div class="relative">
+                        <label for="group-size" class="block text-sm font-medium text-gray-700">Group Size</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <input type="number" id="group-size" name="group-size" placeholder="Enter group size"
+                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                   min="1" required>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-users text-gray-400"></i>
+                            </div>
+                        </div>
+                        <p class="mt-1 text-sm text-red-600" id="group-size-error"></p>
+                    </div>
+
+                    <!-- Departure Date Input (Required) -->
+                    <div class="relative">
+                        <label for="departure-date" class="block text-sm font-medium text-gray-700">Departure Date</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <input type="date" id="departure-date" name="departure-date"
+                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                   required>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-calendar-alt text-gray-400"></i>
+                            </div>
+                        </div>
+                        <p class="mt-1 text-sm text-red-600" id="departure-date-error"></p>
+                    </div>
+
+                    <!-- Departure Stop Search Bar with Dropdown (Required) -->
+                    <div class="relative col-span-1 sm:col-span-2">
+                        <label for="departure-stop" class="block text-sm font-medium text-gray-700">Departure Stop</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <input type="text" id="departure-stop" name="departure-stop" placeholder="Enter departure stop"
+                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                   autocomplete="off" required>
+                            <div id="departure-dropdown"
+                                 class="absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden">
+                                <!-- Options will appear here -->
+                            </div>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-map-marker-alt text-gray-400"></i>
+                            </div>
+                        </div>
+                        <p class="mt-1 text-sm text-red-600" id="departure-stop-error"></p>
+                    </div>
+
+                    <!-- Arrival Stop Search Bar with Dropdown (Required) -->
+                    <div class="relative col-span-1 sm:col-span-2">
+                        <label for="arrival-stop" class="block text-sm font-medium text-gray-700">Arrival Stop</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <input type="text" id="arrival-stop" name="arrival-stop" placeholder="Enter arrival stop"
+                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                   autocomplete="off" required>
+                            <div id="arrival-dropdown"
+                                 class="absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden">
+                                <!-- Options will appear here -->
+                            </div>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-map-marker-alt text-gray-400"></i>
+                            </div>
+                        </div>
+                        <p class="mt-1 text-sm text-red-600" id="arrival-stop-error"></p>
+                    </div>
+
+                    <!-- Departure Time or Arrival Time (Required based on switch) -->
+                    <div class="relative">
+                        <label for="time-input" class="block text-sm font-medium text-gray-700">Time</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <input type="time" id="time-input" name="time-input"
+                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                   required>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-clock text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center mt-2">
+                            <input id="is-arrival" type="checkbox" name="is-arrival"
+                                   class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="is-arrival" class="ml-2 block text-sm text-gray-700">
+                                Is Arrival Time
+                            </label>
+                        </div>
+                        <p class="mt-1 text-sm text-red-600" id="time-input-error"></p>
+                    </div>
+
+                    <!-- Line Name Search Bar with Dropdown (Optional) -->
+                    <div class="relative">
+                        <label for="line-name" class="block text-sm font-medium text-gray-700">Line Name (Optional)</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <input type="text" id="line-name" name="line-name" placeholder="Enter line name"
+                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                   autocomplete="off">
+                            <div id="line-dropdown"
+                                 class="absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden">
+                                <!-- Options will appear here -->
+                            </div>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-subway text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Search Button -->
+                <div class="mt-8 flex justify-center">
+                    <button type="submit" disabled id="search-button"
+                            class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gray-400 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Search
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="results-container mt-8">
+            <!-- Results will be rendered here -->
+        </div>
+    </div>
+
+    <!-- Include Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+    <!-- JavaScript Section -->
+    <script>
+        // Function to fetch suggestions from the backend
+        async function fetchSuggestions(url, params) {
+            const response = await fetch(url + '?' + new URLSearchParams(params));
+            return response.json();
+        }
+
+        // Function to handle search inputs with dropdown suggestions
+        function setupSearchInput(inputId, dropdownId, url, paramsKey, relatedInputId = null) {
+            const inputElement = document.getElementById(inputId);
+            const dropdown = document.getElementById(dropdownId);
+            let lastRequest = 0;
+
+            async function getSuggestions() {
+                lastRequest += 1;
+                const currentRequest = lastRequest;
+                const inputValue = inputElement.value.trim();
+                const params = { [paramsKey]: inputValue };
+
+                // Check for related input values (e.g., departure vs. arrival stop)
+                if (relatedInputId) {
+                    const relatedInputValue = document.getElementById(relatedInputId).value.trim();
+                    if (relatedInputValue) {
+                        params[relatedInputId.includes("departure") ? "departure_stop_name" : "arrival_stop_name"] = relatedInputValue;
+                    }
+                }
+
+                // Fetch suggestions if input is non-empty or a related field has a value
+                if (inputValue.length > 0 || relatedInputId && document.getElementById(relatedInputId).value.trim()) {
+                    const data = await fetchSuggestions(url, params);
+
+                    // Ensure only the latest request updates the dropdown
+                    if (currentRequest === lastRequest) {
+                        let suggestions = [];
+                        if (inputId === 'departure-stop') {
+                            suggestions = data.suggested_departure_stops || [];
+                        } else if (inputId === 'arrival-stop') {
+                            suggestions = data.suggested_arrival_stops || [];
+                        }
+
+                        dropdown.innerHTML = ''; // Clear existing options
+
+                        if (suggestions.length > 0) {
+                            dropdown.classList.remove('hidden');
+                            suggestions.forEach(name => {
+                                const option = document.createElement('div');
+                                option.classList.add('px-4', 'py-2', 'hover:bg-indigo-500', 'hover:text-white', 'cursor-pointer');
+                                option.textContent = name;
+
+                                option.addEventListener('click', () => {
+                                    inputElement.value = name;
+                                    dropdown.classList.add('hidden');
+                                    validateFields();
+                                });
+
+                                dropdown.appendChild(option);
+                            });
+                        } else {
+                            dropdown.classList.add('hidden');
+                        }
+                    }
+                } else {
+                    dropdown.classList.add('hidden');
+                }
+            }
+
+            // Event listeners for fetching suggestions
+            inputElement.addEventListener('input', getSuggestions);
+            inputElement.addEventListener('focus', getSuggestions);
+
+            // Hide dropdown on outside click
+            document.addEventListener('click', (event) => {
+                if (!dropdown.contains(event.target) && event.target !== inputElement) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        // Setup the search inputs with respective URLs and related fields
+        setupSearchInput('departure-stop', 'departure-dropdown', '{% url "suggest_departure_stops" %}', 'departure_name', 'arrival-stop');
+        setupSearchInput('arrival-stop', 'arrival-dropdown', '{% url "suggest_arrival_stops" %}', 'arrival_name', 'departure-stop');
+
+        // Validation and enabling/disabling the search button
+        const requiredFields = ['#group-size', '#departure-date', '#departure-stop', '#arrival-stop', '#time-input'];
+        requiredFields.forEach(selector => document.querySelector(selector).addEventListener('input', validateFields));
+
+        function validateFields() {
+            const isArrivalChecked = document.getElementById('is-arrival').checked;
+            const allFilled = requiredFields.every(selector => document.querySelector(selector).value.trim() !== '');
+
+            const searchButton = document.getElementById("search-button");
+            searchButton.disabled = !allFilled;
+            if (allFilled) {
+                searchButton.classList.remove('cursor-not-allowed', 'bg-gray-400');
+                searchButton.classList.add('bg-indigo-600', 'hover:bg-indigo-700', 'cursor-pointer');
+            } else {
+                searchButton.classList.add('cursor-not-allowed', 'bg-gray-400');
+                searchButton.classList.remove('bg-indigo-600', 'hover:bg-indigo-700', 'cursor-pointer');
+            }
+        }
+
+        // Handle form submission and display results
+        document.getElementById('search-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const formData = {
+                'group_size': document.getElementById('group-size').value,
+                'date': document.getElementById('departure-date').value,
+                'departure_stop_name': document.getElementById('departure-stop').value,
+                'arrival_stop_name': document.getElementById('arrival-stop').value,
+                'is_arrival': document.getElementById('is-arrival').checked,
+                'time': document.getElementById('time-input').value,
+                'line_name': document.getElementById('line-name').value || null,
+            };
+
+            // Prepare query parameters and fetch results
+            const params = new URLSearchParams(formData);
+            const response = await fetch('{% url "search_commute_suggestions" %}?' + params.toString());
+            const data = await response.json();
+            displayResults(data);
+        });
+
+        function displayResults(data) {
+            const resultsContainer = document.getElementById('results');
+            resultsContainer.innerHTML = '';
+
+            if (data.suggestions && data.suggestions.length > 0) {
+                data.suggestions.forEach(item => {
+                    const resultItem = document.createElement('div');
+                    resultItem.classList.add('p-4', 'border', 'border-gray-300', 'rounded-md', 'mb-4', 'shadow-sm');
+
+                    let bookingButton = item.is_fully_booked
+                        ? `<button disabled class="mt-2 px-4 py-2 bg-gray-400 text-white rounded-md cursor-not-allowed">Fully Booked</button>`
+                        : `<a href="${item.book_url}" class="mt-2 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Book Now</a>`;
+
+                    resultItem.innerHTML = `
+                    <p class="text-lg font-semibold">${item.line_name} - ${item.agency_name}</p>
+                    <p><strong>Date:</strong> ${item.date}</p>
+                    <p><strong>Departure Time:</strong> ${item.departure_time}</p>
+                    <p><strong>Arrival Time:</strong> ${item.arrival_time}</p>
+                    <p><strong>Travel Time:</strong> ${item.travel_time}</p>
+                    <p><strong>Available Seats:</strong> ${item.available_seats}</p>
+                    ${bookingButton}
+                `;
+                    resultsContainer.appendChild(resultItem);
+                });
+            } else {
+                resultsContainer.innerHTML = '<p>No results found.</p>';
+            }
+        }
+    </script>
+
+{% endblock content %}

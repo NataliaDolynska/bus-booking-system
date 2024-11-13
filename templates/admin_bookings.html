@@ -1,0 +1,50 @@
+{% extends "_base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-2xl font-semibold mb-4">All Bookings</h1>
+
+        {% if bookings %}
+            <table class="min-w-full bg-white">
+                <thead>
+                <tr>
+                    <th class="py-2 px-4 border-b">Booking ID</th>
+                    <th class="py-2 px-4 border-b">User</th>
+                    <th class="py-2 px-4 border-b">Trip</th>
+                    <th class="py-2 px-4 border-b">Date</th>
+                    <th class="py-2 px-4 border-b">Time</th>
+                    <th class="py-2 px-4 border-b">Passengers</th>
+                    <th class="py-2 px-4 border-b">Status</th>
+                    <th class="py-2 px-4 border-b">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for booking in bookings %}
+                    <tr>
+                        <td class="py-2 px-4 border-b">{{ booking.id }}</td>
+                        <td class="py-2 px-4 border-b">{{ booking.user.username }}</td>
+                        <td class="py-2 px-4 border-b">{{ booking.trip.route.short_name }}</td>
+                        <td class="py-2 px-4 border-b">{{ booking.date }}</td>
+                        <td class="py-2 px-4 border-b">{{ booking.trip.departure_time }}</td>
+                        <td class="py-2 px-4 border-b">{{ booking.num_passengers }}</td>
+                        <td class="py-2 px-4 border-b">{{ booking.status }}</td>
+                        <td class="py-2 px-4 border-b">
+                            {% if booking.status == 'active' %}
+                                <form action="{% url 'admin_cancel_booking' booking.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded">Cancel</button>
+                                </form>
+                            {% else %}
+                                <span class="text-gray-500">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No bookings found.</p>
+        {% endif %}
+    </div>
+{% endblock %}

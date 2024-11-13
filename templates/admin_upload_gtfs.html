@@ -1,0 +1,101 @@
+{% extends "_base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-2xl font-semibold mb-4">Upload GTFS Zip File</h1>
+
+        <form id="gtfs-upload-form" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">GTFS Zip File</label>
+                <input type="file" name="gtfs_file" id="gtfs-file" accept=".zip" required
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+            </div>
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Upload and Import</button>
+        </form>
+
+
+        <!-- Progress Bar -->
+        <div id="progress-container" class="mt-8 hidden">
+            <h2 class="text-xl font-semibold mb-2">Import Progress</h2>
+            <div class="w-full bg-gray-200 rounded-full">
+                <div id="progress-bar"
+                     class="bg-green-500 text-xs leading-none py-1 text-center text-white rounded-full"
+                     style="width: 0%;">
+                    0%
+                </div>
+            </div>
+            <p id="progress-message" class="mt-2"></p>
+        </div>
+    </div>
+
+    <!-- Include jQuery for simplicity -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        $('#gtfs-upload-form').on('submit', function (e) {
+            e.preventDefault();
+
+            var formData = new FormData(this);
+            $('#progress-container').removeClass('hidden');
+            $('#progress-bar').css('width', '0%').text('0%');
+            $('#progress-message').text('Starting import...');
+
+            $.ajax({
+                url: '{% url "manager_upload_gtfs" %}',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (data) {
+                    // Start polling for progress
+                    pollTaskProgress(data.task_id);
+                },
+                error: function (xhr, status, error) {
+                    $('#progress-message').text('An error occurred: ' + error);
+                }
+            });
+        });
+
+        function pollTaskProgress(taskId) {
+            const request_status = function () {
+                console.log("Requesting status for task ID: " + taskId);
+                $.ajax({
+                    url: '{% url "scheduled_task_status" %}',
+                    data: {task_id: taskId},
+                    success: function (data) {
+                        const status = data.status;
+                        const progress = data.progress;
+                        const message = data.message;
+                        console.log(data);
+                        if (status === "failed") {
+                            clearInterval(interval);
+                            $('#progress-message').text('An error occurred during import.');
+                            return;
+                        }
+
+                        $('#progress-bar').css('width', progress + '%').text(progress + '%');
+                        $('#progress-message').text(message);
+
+                        if (data.state === 'SUCCESS' || data.state === 'FAILURE') {
+                            clearInterval(interval);
+                            if (data.state === 'SUCCESS' && progress === 100) {
+                                $('#progress-message').text('Import completed successfully.');
+                            } else if (data.state === 'SUCCESS') {
+                                $('#progress-message').text('Status: ' + status + ' - ' + message);
+                            } else {
+                                $('#progress-message').text('An error occurred during import.');
+                            }
+                        }
+                    },
+                    error: function () {
+                        clearInterval(interval);
+                        $('#progress-message').text('An error occurred while fetching progress.');
+                    }
+                });
+            }
+            const interval = setInterval(request_status, 3000); // Poll every 1 second
+        }
+    </script>
+{% endblock %}

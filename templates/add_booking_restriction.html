@@ -1,0 +1,14 @@
+{% extends "_base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-2xl font-semibold mb-4">Add Booking Restriction</h1>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Add Restriction</button>
+        </form>
+    </div>
+{% endblock %}
