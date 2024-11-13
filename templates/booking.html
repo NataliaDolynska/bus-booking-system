@@ -6,8 +6,6 @@
         <div class="form-container py-8">
             <form id="search-form">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-
-                    <!-- Group Size Input (Required) -->
                     <div class="relative">
                         <label for="group-size" class="block text-sm font-medium text-gray-700">Group Size</label>
                         <div class="mt-1 relative rounded-md shadow-sm">
@@ -36,7 +34,7 @@
                     </div>
 
                     <!-- Departure Stop Search Bar with Dropdown (Required) -->
-                    <div class="relative col-span-1 sm:col-span-2">
+                    <div class="relative col-span-1">
                         <label for="departure-stop" class="block text-sm font-medium text-gray-700">Departure Stop</label>
                         <div class="mt-1 relative rounded-md shadow-sm">
                             <input type="text" id="departure-stop" name="departure-stop" placeholder="Enter departure stop"
@@ -54,7 +52,7 @@
                     </div>
 
                     <!-- Arrival Stop Search Bar with Dropdown (Required) -->
-                    <div class="relative col-span-1 sm:col-span-2">
+                    <div class="relative col-span-1">
                         <label for="arrival-stop" class="block text-sm font-medium text-gray-700">Arrival Stop</label>
                         <div class="mt-1 relative rounded-md shadow-sm">
                             <input type="text" id="arrival-stop" name="arrival-stop" placeholder="Enter arrival stop"
@@ -71,11 +69,11 @@
                         <p class="mt-1 text-sm text-red-600" id="arrival-stop-error"></p>
                     </div>
 
-                    <!-- Departure Time or Arrival Time (Required based on switch) -->
+                    <!-- Time Input (Required) -->
                     <div class="relative">
                         <label for="time-input" class="block text-sm font-medium text-gray-700">Time</label>
                         <div class="mt-1 relative rounded-md shadow-sm">
-                            <input type="time" id="time-input" name="time-input"
+                            <input type="text" id="time-input" name="time-input"
                                    class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                    required>
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -108,8 +106,8 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
+
 
                 <!-- Search Button -->
                 <div class="mt-8 flex justify-center">
@@ -117,6 +115,11 @@
                             class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gray-400 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         Search
                     </button>
+                </div>
+
+                <!-- Loading Spinner -->
+                <div id="loading-spinner" class="flex justify-center mt-4 hidden">
+                    <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12"></div>
                 </div>
             </form>
         </div>
@@ -127,19 +130,25 @@
         </div>
     </div>
 
-    <!-- Include Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
 
     <!-- JavaScript Section -->
     <script>
-        // Function to fetch suggestions from the backend
+        // Map input IDs to parameter keys expected by the backend
+        const inputIdToParamKey = {
+            'departure-stop': 'departure_stop_name',
+            'arrival-stop': 'arrival_stop_name',
+            'line-name': 'line_name',
+        };
+
+        let selectedLineId = null; // Store the selected line ID
+
         async function fetchSuggestions(url, params) {
             const response = await fetch(url + '?' + new URLSearchParams(params));
             return response.json();
         }
 
         // Function to handle search inputs with dropdown suggestions
-        function setupSearchInput(inputId, dropdownId, url, paramsKey, relatedInputId = null) {
+        function setupSearchInput(inputId, dropdownId, url, paramsKey, relatedInputIds = []) {
             const inputElement = document.getElementById(inputId);
             const dropdown = document.getElementById(dropdownId);
             let lastRequest = 0;
@@ -148,58 +157,86 @@
                 lastRequest += 1;
                 const currentRequest = lastRequest;
                 const inputValue = inputElement.value.trim();
-                const params = { [paramsKey]: inputValue };
+                const params = {};
 
-                // Check for related input values (e.g., departure vs. arrival stop)
-                if (relatedInputId) {
+                // Map inputId to parameter key and set the input value
+                const paramKey = inputIdToParamKey[inputId];
+                params[paramKey] = inputValue;
+
+                // Include related input values if present
+                relatedInputIds.forEach(relatedInputId => {
                     const relatedInputValue = document.getElementById(relatedInputId).value.trim();
                     if (relatedInputValue) {
-                        params[relatedInputId.includes("departure") ? "departure_stop_name" : "arrival_stop_name"] = relatedInputValue;
+                        const relatedParamKey = inputIdToParamKey[relatedInputId];
+                        params[relatedParamKey] = relatedInputValue;
                     }
+                });
+
+                // Include selectedLineId if available and not fetching for 'line-name'
+                if (selectedLineId && inputId !== 'line-name') {
+                    params['line_id'] = selectedLineId;
                 }
 
-                // Fetch suggestions if input is non-empty or a related field has a value
-                if (inputValue.length > 0 || relatedInputId && document.getElementById(relatedInputId).value.trim()) {
-                    const data = await fetchSuggestions(url, params);
+                // Fetch suggestions
+                const data = await fetchSuggestions(url, params);
 
-                    // Ensure only the latest request updates the dropdown
-                    if (currentRequest === lastRequest) {
-                        let suggestions = [];
-                        if (inputId === 'departure-stop') {
-                            suggestions = data.suggested_departure_stops || [];
-                        } else if (inputId === 'arrival-stop') {
-                            suggestions = data.suggested_arrival_stops || [];
-                        }
-
-                        dropdown.innerHTML = ''; // Clear existing options
-
-                        if (suggestions.length > 0) {
-                            dropdown.classList.remove('hidden');
-                            suggestions.forEach(name => {
-                                const option = document.createElement('div');
-                                option.classList.add('px-4', 'py-2', 'hover:bg-indigo-500', 'hover:text-white', 'cursor-pointer');
-                                option.textContent = name;
-
-                                option.addEventListener('click', () => {
-                                    inputElement.value = name;
-                                    dropdown.classList.add('hidden');
-                                    validateFields();
-                                });
-
-                                dropdown.appendChild(option);
-                            });
-                        } else {
-                            dropdown.classList.add('hidden');
-                        }
+                // Update dropdown with suggestions
+                if (currentRequest === lastRequest) {
+                    let suggestions = [];
+                    if (inputId === 'departure-stop') {
+                        suggestions = data.suggested_departure_stops || [];
+                    } else if (inputId === 'arrival-stop') {
+                        suggestions = data.suggested_arrival_stops || [];
+                    } else if (inputId === 'line-name') {
+                        suggestions = data.suggested_lines || [];
                     }
-                } else {
-                    dropdown.classList.add('hidden');
+
+                    dropdown.innerHTML = ''; // Clear existing options
+
+                    if (suggestions.length > 0) {
+                        dropdown.classList.remove('hidden');
+                        suggestions.forEach(item => {
+                            const option = document.createElement('div');
+                            option.classList.add('px-4', 'py-2', 'hover:bg-indigo-500', 'hover:text-white', 'cursor-pointer');
+
+                            if (inputId === 'line-name') {
+                                option.textContent = item.name;
+                                option.dataset.lineId = item.id; // Store the line ID
+                            } else {
+                                option.textContent = item; // For stops, item is a string (name)
+                            }
+
+                            option.addEventListener('click', () => {
+                                inputElement.value = option.textContent;
+                                dropdown.classList.add('hidden');
+
+                                if (inputId === 'line-name') {
+                                    // Store the selected line ID
+                                    selectedLineId = option.dataset.lineId;
+                                }
+
+                                validateFields();
+                            });
+
+                            dropdown.appendChild(option);
+                        });
+                    } else {
+                        dropdown.classList.add('hidden');
+                    }
                 }
             }
 
             // Event listeners for fetching suggestions
-            inputElement.addEventListener('input', getSuggestions);
-            inputElement.addEventListener('focus', getSuggestions);
+            inputElement.addEventListener('focus', () => {
+                getSuggestions();
+            });
+
+            inputElement.addEventListener('input', () => {
+                if (inputId === 'line-name') {
+                    selectedLineId = null; // Reset line ID when user types
+                }
+                getSuggestions();
+            });
 
             // Hide dropdown on outside click
             document.addEventListener('click', (event) => {
@@ -210,31 +247,30 @@
         }
 
         // Setup the search inputs with respective URLs and related fields
-        setupSearchInput('departure-stop', 'departure-dropdown', '{% url "suggest_departure_stops" %}', 'departure_name', 'arrival-stop');
-        setupSearchInput('arrival-stop', 'arrival-dropdown', '{% url "suggest_arrival_stops" %}', 'arrival_name', 'departure-stop');
+        setupSearchInput('departure-stop', 'departure-dropdown', '{% url "suggest_departure_stops" %}', 'departure_name', ['arrival-stop', 'line-name']);
+        setupSearchInput('arrival-stop', 'arrival-dropdown', '{% url "suggest_arrival_stops" %}', 'arrival_name', ['departure-stop', 'line-name']);
+        setupSearchInput('line-name', 'line-dropdown', '{% url "suggest_bus_lines" %}', 'line_name', ['departure-stop', 'arrival-stop']);
 
         // Validation and enabling/disabling the search button
         const requiredFields = ['#group-size', '#departure-date', '#departure-stop', '#arrival-stop', '#time-input'];
         requiredFields.forEach(selector => document.querySelector(selector).addEventListener('input', validateFields));
 
         function validateFields() {
-            const isArrivalChecked = document.getElementById('is-arrival').checked;
             const allFilled = requiredFields.every(selector => document.querySelector(selector).value.trim() !== '');
-
             const searchButton = document.getElementById("search-button");
             searchButton.disabled = !allFilled;
-            if (allFilled) {
-                searchButton.classList.remove('cursor-not-allowed', 'bg-gray-400');
-                searchButton.classList.add('bg-indigo-600', 'hover:bg-indigo-700', 'cursor-pointer');
-            } else {
-                searchButton.classList.add('cursor-not-allowed', 'bg-gray-400');
-                searchButton.classList.remove('bg-indigo-600', 'hover:bg-indigo-700', 'cursor-pointer');
-            }
+            searchButton.classList.toggle('cursor-not-allowed', !allFilled);
+            searchButton.classList.toggle('bg-gray-400', !allFilled);
+            searchButton.classList.toggle('bg-indigo-600', allFilled);
+            searchButton.classList.toggle('hover:bg-indigo-700', allFilled);
         }
 
         // Handle form submission and display results
         document.getElementById('search-form').addEventListener('submit', async function (event) {
             event.preventDefault();
+            // Show spinner
+            document.getElementById('loading-spinner').classList.remove('hidden');
+
             const formData = {
                 'group_size': document.getElementById('group-size').value,
                 'date': document.getElementById('departure-date').value,
@@ -243,6 +279,7 @@
                 'is_arrival': document.getElementById('is-arrival').checked,
                 'time': document.getElementById('time-input').value,
                 'line_name': document.getElementById('line-name').value || null,
+                'line_id': selectedLineId || null,
             };
 
             // Prepare query parameters and fetch results
@@ -250,6 +287,9 @@
             const response = await fetch('{% url "search_commute_suggestions" %}?' + params.toString());
             const data = await response.json();
             displayResults(data);
+
+            // Hide spinner
+            document.getElementById('loading-spinner').classList.add('hidden');
         });
 
         function displayResults(data) {
@@ -281,5 +321,6 @@
             }
         }
     </script>
+
 
 {% endblock content %}

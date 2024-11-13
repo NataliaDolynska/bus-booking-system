@@ -1,6 +1,7 @@
 import logging
 from multiprocessing.pool import AsyncResult
 from django.utils import timezone
+from django.db.models import Q
 
 from django.contrib.admin.views.decorators import staff_member_required
 from loguru import logger
@@ -224,23 +225,30 @@ from django.db.models import OuterRef, Subquery, F, Q
 
 
 
+
 def suggest_departure_stops(request):
     arrival_stop_name = request.GET.get("arrival_stop_name", None)
-    line_id = request.GET.get("line_id", None)  # Pass line ID for faster query
+    line_id = request.GET.get("line_id", None)  # Bus line ID for faster queries
     departure_name = request.GET.get("departure_name", None)
 
-    # Start with all stops
+    # Start with all stop names (duplicates allowed due to same names)
     stops = Stop.objects.all()
 
-    # Filter by line if provided
+    # Filter by bus line if provided
     if line_id:
-        trips_with_line = Trip.objects.filter(route_id=line_id)
+        trips_with_line = Trip.objects.filter(route__route_id=line_id)
         stops = stops.filter(stoptime__trip__in=trips_with_line).distinct()
 
     # Filter by arrival stop if provided
     if arrival_stop_name:
-        # Get trips that stop at arrival stop
-        trips_with_arrival = Trip.objects.filter(stoptime__stop__name=arrival_stop_name)
+        # Get trips that stop at the arrival stop
+        trips_with_arrival = Trip.objects.filter(
+            stoptime__stop__name=arrival_stop_name
+        )
+        # If line is also selected, intersect trips
+        if line_id:
+            trips_with_arrival = trips_with_arrival.filter(route__route_id=line_id)
+        # Get departure stops from these trips
         stops = stops.filter(
             stoptime__trip__in=trips_with_arrival
         ).distinct()
@@ -262,20 +270,26 @@ def suggest_arrival_stops(request):
     # Start with all stops
     stops = Stop.objects.all()
 
-    # Filter by line if provided
+    # Filter by bus line if provided
     if line_id:
-        trips_with_line = Trip.objects.filter(route_id=line_id)
+        trips_with_line = Trip.objects.filter(route__route_id=line_id)
         stops = stops.filter(stoptime__trip__in=trips_with_line).distinct()
 
     # Filter by departure stop if provided
     if departure_stop_name:
-        # Get trips that include departure stop
-        trips_with_departure = Trip.objects.filter(stoptime__stop__name=departure_stop_name)
+        # Get trips that stop at the departure stop
+        trips_with_departure = Trip.objects.filter(
+            stoptime__stop__name=departure_stop_name
+        )
+        # If line is also selected, intersect trips
+        if line_id:
+            trips_with_departure = trips_with_departure.filter(route__route_id=line_id)
+        # Get arrival stops from these trips
         stops = stops.filter(
             stoptime__trip__in=trips_with_departure
         ).distinct()
 
-    # Filter by partial arrival name
+    # Filter by partial arrival name for autocomplete functionality
     if arrival_name:
         stops = stops.filter(name__icontains=arrival_name)
 
@@ -284,67 +298,44 @@ def suggest_arrival_stops(request):
 
     return JsonResponse({"suggested_arrival_stops": list(stop_names)})
 
-def suggest_lines(request):
-    # Parse optional query parameters
+def suggest_bus_lines(request):
     departure_stop_name = request.GET.get("departure_stop_name", None)
     arrival_stop_name = request.GET.get("arrival_stop_name", None)
     line_name = request.GET.get("line_name", None)
 
-    # Start with all trips
+    # Start with all routes
+    routes = Route.objects.all()
+
+    # Filter trips based on selected stops
     trips = Trip.objects.all()
 
-    # Filter trips by departure_stop_id if provided
     if departure_stop_name:
         trips = trips.filter(
-            stoptime__stop__stop_name=departure_stop_name
-        ).distinct()
-
-    # Filter trips by arrival_stop_id if provided
+            stoptime__stop__name=departure_stop_name
+        )
     if arrival_stop_name:
         trips = trips.filter(
-            stoptime__stop__stop_name=arrival_stop_name
-        ).distinct()
-
-    # If both departure and arrival stops are provided, ensure correct sequence
-    if departure_stop_name and arrival_stop_name:
-        trips = trips.annotate(
-            departure_sequence=Subquery(
-                StopTime.objects.filter(
-                    trip=OuterRef('pk'),
-                    stop__stop_name=departure_stop_name
-                ).values('stop_sequence')[:1]
-            ),
-            arrival_sequence=Subquery(
-                StopTime.objects.filter(
-                    trip=OuterRef('pk'),
-                    stop__stop_name=arrival_stop_name
-                ).values('stop_sequence')[:1]
-            )
-        ).filter(
-            departure_sequence__lt=F('arrival_sequence')
+            stoptime__stop__name=arrival_stop_name
         )
 
-    # Filter trips by line_name if provided
+    if departure_stop_name or arrival_stop_name:
+        # Filter routes based on trips
+        routes = routes.filter(trip__in=trips).distinct()
+
+    # Filter by partial line name for autocomplete functionality
     if line_name:
-        trips = trips.filter(route__short_name__icontains=line_name)
+        routes = routes.filter(short_name__icontains=line_name)
 
-    # Get routes from the filtered trips
-    suggested_lines = Route.objects.filter(
-        trip__in=trips
-    ).distinct()
+    # Return list of unique route names and IDs
+    route_info = routes.values("short_name", "route_id").distinct()
 
-    # Format response data
-    line_suggestions = [
-        {
-            "route_id": route.route_id,
-            "line_name": route.short_name,
-            "agency_name": route.agency.name if route.agency else "Unknown Agency",
-            "route_desc": route.desc
-        }
-        for route in suggested_lines
+    # Prepare the response as a list of dictionaries
+    suggested_lines = [
+        {"name": route["short_name"], "id": route["route_id"]}
+        for route in route_info
     ]
 
-    return JsonResponse({"suggested_lines": line_suggestions})
+    return JsonResponse({"suggested_lines": suggested_lines})
 
 
 def search_commute_suggestions(request):

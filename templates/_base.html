@@ -9,7 +9,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Django + HTMX + TailwindCSS</title>
+    <title>Booking system</title>
 
 
     {% compress css %}
@@ -28,7 +28,9 @@
 
     {% endcompress %}
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet"/>
-    <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+    <!-- In the head section -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
 
 </head>
 <body class="bg-gray-100 p-8">
@@ -61,7 +63,29 @@
     <script type="text/javascript" src="{% static 'assets/js/plugins/typedjs.js' %}"></script>
 {% endcompress %}
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    // ...existing JavaScript code...
 
+    // Initialize flatpickr on the time input
+    flatpickr("#time-input", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true
+    });
+</script>
+
+<style>
+    .loader {
+        border-top-color: #3498db;
+        animation: spin 1s ease-in-out infinite;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
 
 {% livereload_script %}
 
