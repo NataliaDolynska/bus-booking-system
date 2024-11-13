@@ -173,6 +173,7 @@
                 });
 
                 // Include selectedLineId if available and not fetching for 'line-name'
+                {#console.log("SELECTED LINE ID : " + inputId)#}
                 if (selectedLineId && inputId !== 'line-name') {
                     params['line_id'] = selectedLineId;
                 }

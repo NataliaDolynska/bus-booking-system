@@ -229,7 +229,7 @@ from django.db.models import OuterRef, Subquery, F, Q
 def suggest_departure_stops(request):
     arrival_stop_name = request.GET.get("arrival_stop_name", None)
     line_id = request.GET.get("line_id", None)  # Bus line ID for faster queries
-    departure_name = request.GET.get("departure_name", None)
+    departure_name = request.GET.get("departure_stop_name", None)
 
     # Start with all stop names (duplicates allowed due to same names)
     stops = Stop.objects.all()
@@ -265,7 +265,7 @@ def suggest_departure_stops(request):
 def suggest_arrival_stops(request):
     departure_stop_name = request.GET.get("departure_stop_name", None)
     line_id = request.GET.get("line_id", None)
-    arrival_name = request.GET.get("arrival_name", None)
+    arrival_name = request.GET.get("arrival_stop_name", None)
 
     # Start with all stops
     stops = Stop.objects.all()
@@ -339,20 +339,34 @@ def suggest_bus_lines(request):
 
 
 def search_commute_suggestions(request):
+    from django.db.models import Sum, Value, IntegerField
+    from django.db.models.functions import Coalesce
+
     # Parse query parameters
-    date = parse_date(request.GET.get("date"))
-    num_passengers = int(request.GET.get("group_size"))
+    date_str = request.GET.get("date")
+    num_passengers = request.GET.get("group_size")
     departure_stop_name = request.GET.get("departure_stop_name")
     arrival_stop_name = request.GET.get("arrival_stop_name")
     line_name = request.GET.get("line_name", None)
+    line_id = request.GET.get("line_id", None)
     is_arrival = request.GET.get("is_arrival", "false").lower() == "true"
-    required_time = parse_time(request.GET.get("time", None))
+    time_str = request.GET.get("time", None)
 
     # Validate required fields
-    if not date or not num_passengers or not departure_stop_name or not arrival_stop_name or not required_time:
+    if not date_str or not num_passengers or not departure_stop_name or not arrival_stop_name or not time_str:
         return JsonResponse({
             "error": "Date, number of passengers, departure stop, arrival stop, and time are required."
         }, status=400)
+
+    # Parse date and time
+    date = parse_date(date_str)
+    required_time = parse_time(time_str)
+    num_passengers = int(num_passengers)
+
+    # Validate date is not in the past
+    today = datetime.now().date()
+    if date < today:
+        return JsonResponse({"error": "Date cannot be in the past."}, status=400)
 
     # Step 1: Retrieve active service_ids
     day_of_week = date.strftime('%A').lower()
@@ -362,62 +376,63 @@ def search_commute_suggestions(request):
         **{day_of_week: 1}
     ).values_list('service_id', flat=True)
 
+    # Include added services and exclude removed services
     added_services = CalendarDate.objects.filter(
         date=date,
-        exception_type=1
+        exception_type__value=1  # Assuming exception_type is a ForeignKey
     ).values_list('service_id', flat=True)
-    active_services = active_services.union(added_services)
-
     removed_services = CalendarDate.objects.filter(
         date=date,
-        exception_type=2
+        exception_type__value=2
     ).values_list('service_id', flat=True)
-    active_services = active_services.difference(removed_services)
+
+    active_services = active_services.union(added_services).difference(removed_services)
 
     # Step 2: Filter trips
     trips = Trip.objects.filter(service_id__in=active_services)
-    if line_name and line_name != "null":
+
+    # Filter by line_id if provided
+    if line_id and line_id != "null":
+        trips = trips.filter(route__route_id=line_id)
+    elif line_name and line_name != "null":
         trips = trips.filter(route__short_name__icontains=line_name)
 
-
-# Filter trips that include both departure and arrival stops
+    # Filter trips that include both departure and arrival stops
     trips = trips.filter(
-        stoptime__stop__stop_name=departure_stop_name
+        stoptime__stop__name=departure_stop_name
     ).filter(
-        stoptime__stop__stop_name=arrival_stop_name
+        stoptime__stop__name=arrival_stop_name
     ).distinct()
 
-    # Ensure correct stop sequence
+    # Ensure correct stop sequence (departure before arrival)
     trips = trips.annotate(
         departure_sequence=Subquery(
             StopTime.objects.filter(
                 trip=OuterRef('pk'),
-                stop__stop_name=departure_stop_name
+                stop__name=departure_stop_name
             ).values('stop_sequence')[:1]
         ),
         arrival_sequence=Subquery(
             StopTime.objects.filter(
                 trip=OuterRef('pk'),
-                stop__stop_name=arrival_stop_name
+                stop__name=arrival_stop_name
             ).values('stop_sequence')[:1]
         )
     ).filter(
         departure_sequence__lt=F('arrival_sequence')
     )
 
-    # Filter trips by line_name if provided
-
     # Step 3: Filter by time constraints
     if is_arrival:
-        # Calculate time window
-        start_time = (datetime.combine(date, required_time) - timedelta(hours=1)).time()
+        # Arrival time constraint
         end_time = required_time
+        start_time = (datetime.combine(date, required_time) - timedelta(hours=1)).time()
 
         trips = trips.annotate(
             arrival_time=Subquery(
                 StopTime.objects.filter(
                     trip=OuterRef('pk'),
-                    stop__stop_name=arrival_stop_name
+                    stop__name=arrival_stop_name
                 ).values('arrival_time')[:1]
             )
         ).filter(
@@ -425,7 +440,7 @@ def search_commute_suggestions(request):
             arrival_time__lte=end_time
         )
     else:
-        # Calculate time window
+        # Departure time constraint
         start_time = required_time
         end_time = (datetime.combine(date, required_time) + timedelta(hours=1)).time()
 
@@ -433,7 +448,7 @@ def search_commute_suggestions(request):
             departure_time=Subquery(
                 StopTime.objects.filter(
                     trip=OuterRef('pk'),
-                    stop__stop_name=departure_stop_name
+                    stop__name=departure_stop_name
                 ).values('departure_time')[:1]
             )
         ).filter(
@@ -441,60 +456,111 @@ def search_commute_suggestions(request):
             departure_time__lte=end_time
         )
 
-    # Step 4: Filter by capacity (simplified for example)
+    # Step 4: Exclude trips with booking restrictions
+    from django.db.models import Q
+
+    # Fetch active booking restrictions with hide_result=True
+    restrictions = BookingRestriction.objects.filter(hide_result=True, is_active=True)
+
+    # Build Q objects for route and station restrictions
+    route_restrictions = restrictions.exclude(route_id__isnull=True)
+    station_restrictions = restrictions.exclude(station__isnull=True)
+
+    # Q object to accumulate all restrictions
+    restriction_q = Q()
+
+    # Route-based restrictions
+    if route_restrictions.exists():
+        restriction_q |= Q(route__route_id__in=route_restrictions.values_list('route_id', flat=True))
+
+    # Station-based restrictions
+    if station_restrictions.exists():
+        restriction_q |= Q(
+            stoptime__stop__in=station_restrictions.values_list('station', flat=True)
+        )
+
+    # Exclude trips matching any restriction
+    if restriction_q:
+        trips = trips.exclude(restriction_q)
+
+    # Step 5: Annotate trips with max_seats
     trips = trips.annotate(
         max_seats=Coalesce(
             Subquery(
                 RouteCapacity.objects.filter(route=OuterRef('route')).values('max_seats')[:1]
             ),
-            Value(30, output_field=IntegerField())  # Wrap 30 in Value()
-        ),
-        total_booked=Coalesce(
-            Subquery(
-                Booking.objects.filter(
-                    trip=OuterRef('pk'),
-                    date=date
-                ).values('trip').annotate(
-                    total=Sum('num_passengers')
-                ).values('total')[:1]
-            ),
-            Value(0, output_field=IntegerField())  # Ensure 0 is also wrapped
-        ),
-        available_seats=F('max_seats') - F('total_booked')
-    ).filter(
-        available_seats__gte=num_passengers
+            Value(30, output_field=IntegerField())  # Default to 30 seats
+        )
     )
 
-    # Step 5: Format results
+    # Step 6: Process each trip to calculate available seats based on overlapping bookings
     suggestions = []
-    today = datetime.today().date()
-    for trip in trips.select_related('route__agency'):
+    for trip in trips.select_related('route__agency').distinct():
         route = trip.route
         agency_name = route.agency.name if route.agency else "Unknown Agency"
         line_name = route.short_name
 
-        # Get departure time
+        # Get departure and arrival stoptimes and sequences
         try:
-            departure_stoptime = StopTime.objects.get(trip=trip, stop__stop_name=departure_stop_name)
-            arrival_stoptime = StopTime.objects.get(trip=trip, stop__stop_name=arrival_stop_name)
+            departure_stoptime = StopTime.objects.get(trip=trip, stop__name=departure_stop_name)
+            arrival_stoptime = StopTime.objects.get(trip=trip, stop__name=arrival_stop_name)
             departure_time = departure_stoptime.departure_time
             arrival_time = arrival_stoptime.arrival_time
-
-            departure_datetime = datetime.combine(today, departure_time)
-            arrival_datetime = datetime.combine(today, arrival_time)
-            if arrival_datetime < departure_datetime:
-                arrival_datetime += timedelta(days=1)
-
-            travel_time = arrival_datetime - departure_datetime
-            hours, remainder = divmod(travel_time.total_seconds(), 3600)
-            minutes = remainder // 60
-            if hours > 0:
-                formatted_travel_time = f"{int(hours)} hours, {int(minutes)} minutes"
-            else:
-                formatted_travel_time = f"{int(minutes)} minutes"
+            departure_sequence = departure_stoptime.stop_sequence
+            arrival_sequence = arrival_stoptime.stop_sequence
         except StopTime.DoesNotExist:
-            continue
+            continue  # Skip if stoptimes are missing
 
+        # Get all bookings for this trip on this date
+        bookings = Booking.objects.filter(trip=trip, date=date)
+
+        # Calculate total booked seats overlapping with the requested segment
+        total_booked = 0
+        for booking in bookings:
+            # Get booking's from_sequence and to_sequence
+            try:
+                booking_departure_stoptime = StopTime.objects.get(trip=trip, stop=booking.from_stop)
+                booking_arrival_stoptime = StopTime.objects.get(trip=trip, stop=booking.to_stop)
+                booking_from_sequence = booking_departure_stoptime.stop_sequence
+                booking_to_sequence = booking_arrival_stoptime.stop_sequence
+            except StopTime.DoesNotExist:
+                continue  # Skip if stoptimes are missing
+
+            # Ensure booking sequences are in order
+            if booking_from_sequence >= booking_to_sequence:
+                continue  # Invalid booking, skip
+
+            # Check if booking's segment overlaps with the requested segment
+            # Overlaps if booking_from_sequence < arrival_sequence and booking_to_sequence > departure_sequence
+            if (booking_from_sequence < arrival_sequence) and (booking_to_sequence > departure_sequence):
+                total_booked += booking.num_passengers
+
+        # Calculate available seats
+        max_seats = trip.max_seats
+        available_seats = max_seats - total_booked
+
+        # Determine if the trip is fully booked for the requested segment
+        is_fully_booked = available_seats < num_passengers
+
+        # Optionally, hide trips that are fully booked or continue to display them
+        # For now, we exclude trips that cannot accommodate the group size
+        if is_fully_booked:
+            continue  # Skip trips that cannot accommodate the group size
+
+        # Calculate travel time
+        departure_datetime = datetime.combine(date, departure_time)
+        arrival_datetime = datetime.combine(date, arrival_time)
+        if arrival_datetime < departure_datetime:
+            arrival_datetime += timedelta(days=1)
+        travel_time = arrival_datetime - departure_datetime
+        hours, remainder = divmod(travel_time.total_seconds(), 3600)
+        minutes = remainder // 60
+        if hours > 0:
+            formatted_travel_time = f"{int(hours)} hours, {int(minutes)} minutes"
+        else:
+            formatted_travel_time = f"{int(minutes)} minutes"
+
+        # Prepare suggestion
         suggestion = {
             "agency_name": agency_name,
             "date": date.strftime("%Y-%m-%d"),
@@ -503,8 +569,10 @@ def search_commute_suggestions(request):
             "travel_time": formatted_travel_time,
             "line_name": line_name,
             "book_url": f"/book-trip/{trip.id}/",
-            "available_seats": trip.available_seats,
-            "is_fully_booked": trip.available_seats < num_passengers
+            "available_seats": available_seats,
+            "is_fully_booked": is_fully_booked,
+            "total_booked": total_booked,
+            "max_seats": max_seats,
         }
 
         suggestions.append(suggestion)

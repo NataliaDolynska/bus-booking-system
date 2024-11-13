@@ -39,8 +39,8 @@ class Booking(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings')
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name='bookings')
     date = models.DateField()
-    starting_stop = models.ForeignKey(Stop, on_delete=models.CASCADE, related_name='starting_bookings')
-    destination_stop = models.ForeignKey(Stop, on_delete=models.CASCADE, related_name='destination_bookings')
+    from_stop = models.ForeignKey(Stop, on_delete=models.CASCADE, related_name='starting_bookings')
+    to_stop = models.ForeignKey(Stop, on_delete=models.CASCADE, related_name='destination_bookings')
     departure_time = models.TimeField()
     num_passengers = models.PositiveIntegerField()
     STATUS_CHOICES = [
@@ -59,6 +59,7 @@ from django.utils import timezone
 
 class BookingRestriction(models.Model):
     station = models.ForeignKey(Stop, null=True, blank=True, on_delete=models.CASCADE)
+    hide_result = models.BooleanField(blank=False, null=False, default=False)
     route_id = models.CharField(max_length=255, null=True, blank=True)
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
