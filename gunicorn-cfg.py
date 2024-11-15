@@ -3,7 +3,7 @@
 Copyright (c) 2019 - present AppSeed.us
 """
 
-bind = '0.0.0.0:443'  # Use port 443 for HTTPS
+bind = '0.0.0.0:80'  # Use port 443 for HTTPS
 workers = 1
 accesslog = '-'
 loglevel = 'debug'
