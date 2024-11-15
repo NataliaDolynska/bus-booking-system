@@ -2,10 +2,11 @@ import os
 import tempfile
 
 from celery.app.task import Task
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render
 from django_q.tasks import async_task
-from django_q.models import  Task
+from django_q.models import Task
 
 from apps.bookings.models import Booking
 from django.core import serializers
@@ -15,6 +16,7 @@ from apps.tasks.models import TaskProgress
 from apps.tasks.utils.db_utils import if_exists
 from apps.tasks.utils.file_utils import compute_file_hash
 from tasks_scripts.gtfs_load import load_gtfs_data
+
 
 # Create your views here.
 
@@ -48,6 +50,7 @@ def task_status(request):
         }, status=500)
 
 
+@login_required(login_url='/users/signin/')
 def admin_upload_gtfs(request):
     if request.method == 'POST':
         gtfs_file = request.FILES.get('gtfs_file')

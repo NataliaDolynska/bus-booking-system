@@ -42,19 +42,22 @@
                             <li>
                                 <a href="{% url 'booking-restrictions' %}"
                                    class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700 {% if 'restrictions' in segment %} bg-gray-100 dark:bg-gray-700 {% endif %}">
-                                    <svg class="w-6 h-6 text-gray-300 dark:text-white fill-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-                                        <path d="M367.2 412.5L99.5 144.8C77.1 176.1 64 214.5 64 256c0 106 86 192 192 192c41.5 0 79.9-13.1 111.2-35.5zm45.3-45.3C434.9 335.9 448 297.5 448 256c0-106-86-192-192-192c-41.5 0-79.9 13.1-111.2 35.5L412.5 367.2zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256z"/></svg>
-                                    
+                                    <svg class="w-6 h-6 text-gray-300 dark:text-white fill-gray-500" aria-hidden="true"
+                                         xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                                        <path d="M367.2 412.5L99.5 144.8C77.1 176.1 64 214.5 64 256c0 106 86 192 192 192c41.5 0 79.9-13.1 111.2-35.5zm45.3-45.3C434.9 335.9 448 297.5 448 256c0-106-86-192-192-192c-41.5 0-79.9 13.1-111.2 35.5L412.5 367.2zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256z"/>
+                                    </svg>
+
                                     <span class="ml-3" sidebar-toggle-item>Restrictions</span>
                                 </a>
                             </li>
                             <li>
                                 <a href="{% url 'routes_capacities' %}"
                                    class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700 {% if 'route-capacities' in segment %} bg-gray-100 dark:bg-gray-700 {% endif %}">
-                                    <svg class="w-6 h-6 text-gray-300 dark:text-white fill-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                                    <svg class="w-6 h-6 text-gray-300 dark:text-white fill-gray-500" aria-hidden="true"
+                                         xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
                                         <path d="M512 96c0 50.2-59.1 125.1-84.6 155c-3.8 4.4-9.4 6.1-14.5 5L320 256c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c53 0 96 43 96 96s-43 96-96 96l-276.4 0c8.7-9.9 19.3-22.6 30-36.8c6.3-8.4 12.8-17.6 19-27.2L416 448c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0c-53 0-96-43-96-96s43-96 96-96l39.8 0c-21-31.5-39.8-67.7-39.8-96c0-53 43-96 96-96s96 43 96 96zM117.1 489.1c-3.8 4.3-7.2 8.1-10.1 11.3l-1.8 2-.2-.2c-6 4.6-14.6 4-20-1.8C59.8 473 0 402.5 0 352c0-53 43-96 96-96s96 43 96 96c0 30-21.1 67-43.5 97.9c-10.7 14.7-21.7 28-30.8 38.5l-.6 .7zM128 352a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zM416 128a32 32 0 1 0 0-64 32 32 0 1 0 0 64z"/>
-                                    
-                                    
+
+
                                     </svg>
 
                                     <span class="ml-3" sidebar-toggle-item>Capacities</span>
@@ -72,6 +75,16 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{% url "upload-gtfs" %}"
+                                   class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700 ">
+                                    <svg class="w-6 h-6 text-gray-500 dark:text-white" aria-hidden="true"
+                                         xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
+                                        <path d="M408 120c0 54.6-73.1 151.9-105.2 192c-7.7 9.6-22 9.6-29.6 0C241.1 271.9 168 174.6 168 120C168 53.7 221.7 0 288 0s120 53.7 120 120zm8 80.4c3.5-6.9 6.7-13.8 9.6-20.6c.5-1.2 1-2.5 1.5-3.7l116-46.4C558.9 123.4 576 135 576 152l0 270.8c0 9.8-6 18.6-15.1 22.3L416 503l0-302.6zM137.6 138.3c2.4 14.1 7.2 28.3 12.8 41.5c2.9 6.8 6.1 13.7 9.6 20.6l0 251.4L32.9 502.7C17.1 509 0 497.4 0 480.4L0 209.6c0-9.8 6-18.6 15.1-22.3l122.6-49zM327.8 332c13.9-17.4 35.7-45.7 56.2-77l0 249.3L192 449.4 192 255c20.5 31.3 42.3 59.6 56.2 77c20.5 25.6 59.1 25.6 79.6 0zM288 152a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"/>
+                                    </svg>
+                                    <span class="ml-3" sidebar-toggle-item>Upload GTFS</span>
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{% url 'admin:index' %}"
                                    class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700 {% if 'settings' in segment %} bg-gray-100 dark:bg-gray-700 {% endif %}">
                                     <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
@@ -84,64 +97,66 @@
                                     <span class="ml-3" sidebar-toggle-item>Admin View</span>
                                 </a>
                             </li>
-                           
 
 
-{#                            <li>#}
-{#                                <button type="button"#}
-{#                                        class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 {% if 'apps' in parent %} bg-gray-100 dark:bg-gray-700 {% endif %}"#}
-{#                                        aria-controls="dropdown-dashboard" data-collapse-toggle="dropdown-dashboard">#}
-{#                                    <svg class="w-6 h-6 text-gray-500 dark:text-white" aria-hidden="true"#}
-{#                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">#}
-{#                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"#}
-{#                                              stroke-width="2"#}
-{#                                              d="M6.143 1H1.857A.857.857 0 0 0 1 1.857v4.286c0 .473.384.857.857.857h4.286A.857.857 0 0 0 7 6.143V1.857A.857.857 0 0 0 6.143 1Zm10 0h-4.286a.857.857 0 0 0-.857.857v4.286c0 .473.384.857.857.857h4.286A.857.857 0 0 0 17 6.143V1.857A.857.857 0 0 0 16.143 1Zm-10 10H1.857a.857.857 0 0 0-.857.857v4.286c0 .473.384.857.857.857h4.286A.857.857 0 0 0 7 16.143v-4.286A.857.857 0 0 0 6.143 11Zm10 0h-4.286a.857.857 0 0 0-.857.857v4.286c0 .473.384.857.857.857h4.286a.857.857 0 0 0 .857-.857v-4.286a.857.857 0 0 0-.857-.857Z"/>#}
-{#                                    </svg>#}
-{#                                    <span class="flex-1 ml-3 text-left whitespace-nowrap"#}
-{#                                          sidebar-toggle-item>Apps</span>#}
-{#                                    <svg sidebar-toggle-item class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"#}
-{#                                         xmlns="http://www.w3.org/2000/svg">#}
-{#                                        <path fill-rule="evenodd"#}
-{#                                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"#}
-{#                                              clip-rule="evenodd"></path>#}
-{#                                    </svg>#}
-{#                                </button>#}
-{#                                <ul id="dropdown-dashboard" class="py-2 space-y-2 block">#}
-{#                                    <li>#}
-{#                                        <a href="{% url 'datatables' %}"#}
-{#                                           class="flex items-center p-2 text-base text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 {% if 'datatables' in segment %} bg-gray-100 dark:bg-gray-700 {% endif %}">DataTables</a>#}
-{#                                    </li>#}
-{#                                    <li>#}
-{#                                        <a href="{% url 'charts' %}"#}
-{#                                           class="flex items-center p-2 text-base text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 {% if 'charts' in segment %} bg-gray-100 dark:bg-gray-700 {% endif %}">Charts</a>#}
-{#                                    </li>#}
-{#                                    <li>#}
-{#                                        <a href="/api/product/" target="_blank"#}
-{#                                           class="flex items-center p-2 text-base text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">API</a>#}
-{#                                    </li>#}
-{#                                    <li>#}
-{#                                        <a href="{% url 'tasks' %}"#}
-{#                                           class="flex items-center p-2 text-base text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 {% if 'tasks' in segment %} bg-gray-100 dark:bg-gray-700 {% endif %}">Tasks</a>#}
-{#                                    </li>#}
-{#                                </ul>#}
-{#                            </li>#}
+
+                            {#                            <li>#}
+                            {#                                <button type="button"#}
+                            {#                                        class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 {% if 'apps' in parent %} bg-gray-100 dark:bg-gray-700 {% endif %}"#}
+                            {#                                        aria-controls="dropdown-dashboard" data-collapse-toggle="dropdown-dashboard">#}
+                            {#                                    <svg class="w-6 h-6 text-gray-500 dark:text-white" aria-hidden="true"#}
+                            {#                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">#}
+                            {#                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"#}
+                            {#                                              stroke-width="2"#}
+                            {#                                              d="M6.143 1H1.857A.857.857 0 0 0 1 1.857v4.286c0 .473.384.857.857.857h4.286A.857.857 0 0 0 7 6.143V1.857A.857.857 0 0 0 6.143 1Zm10 0h-4.286a.857.857 0 0 0-.857.857v4.286c0 .473.384.857.857.857h4.286A.857.857 0 0 0 17 6.143V1.857A.857.857 0 0 0 16.143 1Zm-10 10H1.857a.857.857 0 0 0-.857.857v4.286c0 .473.384.857.857.857h4.286A.857.857 0 0 0 7 16.143v-4.286A.857.857 0 0 0 6.143 11Zm10 0h-4.286a.857.857 0 0 0-.857.857v4.286c0 .473.384.857.857.857h4.286a.857.857 0 0 0 .857-.857v-4.286a.857.857 0 0 0-.857-.857Z"/>#}
+                            {#                                    </svg>#}
+                            {#                                    <span class="flex-1 ml-3 text-left whitespace-nowrap"#}
+                            {#                                          sidebar-toggle-item>Apps</span>#}
+                            {#                                    <svg sidebar-toggle-item class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"#}
+                            {#                                         xmlns="http://www.w3.org/2000/svg">#}
+                            {#                                        <path fill-rule="evenodd"#}
+                            {#                                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"#}
+                            {#                                              clip-rule="evenodd"></path>#}
+                            {#                                    </svg>#}
+                            {#                                </button>#}
+                            {#                                <ul id="dropdown-dashboard" class="py-2 space-y-2 block">#}
+                            {#                                    <li>#}
+                            {#                                        <a href="{% url 'datatables' %}"#}
+                            {#                                           class="flex items-center p-2 text-base text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 {% if 'datatables' in segment %} bg-gray-100 dark:bg-gray-700 {% endif %}">DataTables</a>#}
+                            {#                                    </li>#}
+                            {#                                    <li>#}
+                            {#                                        <a href="{% url 'charts' %}"#}
+                            {#                                           class="flex items-center p-2 text-base text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 {% if 'charts' in segment %} bg-gray-100 dark:bg-gray-700 {% endif %}">Charts</a>#}
+                            {#                                    </li>#}
+                            {#                                    <li>#}
+                            {#                                        <a href="/api/product/" target="_blank"#}
+                            {#                                           class="flex items-center p-2 text-base text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">API</a>#}
+                            {#                                    </li>#}
+                            {#                                    <li>#}
+                            {#                                        <a href="{% url 'tasks' %}"#}
+                            {#                                           class="flex items-center p-2 text-base text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 {% if 'tasks' in segment %} bg-gray-100 dark:bg-gray-700 {% endif %}">Tasks</a>#}
+                            {#                                    </li>#}
+                            {#                                </ul>#}
+                            {#                            </li>#}
                         {% else %}
-{#                            <li>#}
-{#                                <a href="/"#}
-{#                                   class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700 {% if 'dashboard' in segment %} bg-gray-100 dark:bg-gray-700 {% endif %}">#}
-{#                                    <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"#}
-{#                                         fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">#}
-{#                                        <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path>#}
-{#                                        <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path>#}
-{#                                    </svg>#}
-{#                                    <span class="ml-3" sidebar-toggle-item>Dashboards</span>#}
-{#                                </a>#}
-{#                            </li>#}
+                            {#                            <li>#}
+                            {#                                <a href="/"#}
+                            {#                                   class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700 {% if 'dashboard' in segment %} bg-gray-100 dark:bg-gray-700 {% endif %}">#}
+                            {#                                    <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"#}
+                            {#                                         fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">#}
+                            {#                                        <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path>#}
+                            {#                                        <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path>#}
+                            {#                                    </svg>#}
+                            {#                                    <span class="ml-3" sidebar-toggle-item>Dashboards</span>#}
+                            {#                                </a>#}
+                            {#                            </li>#}
                             <li>
                                 <a href="{% url 'bookings' %}"
                                    class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700 {% if 'bookings' in segment %} bg-gray-100 dark:bg-gray-700 {% endif %}">
-                                    <svg class="w-6 h-6 text-gray-300 dark:text-white fill-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-                                        <path d="M152 24c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 40L64 64C28.7 64 0 92.7 0 128l0 16 0 48L0 448c0 35.3 28.7 64 64 64l320 0c35.3 0 64-28.7 64-64l0-256 0-48 0-16c0-35.3-28.7-64-64-64l-40 0 0-40c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 40L152 64l0-40zM48 192l352 0 0 256c0 8.8-7.2 16-16 16L64 464c-8.8 0-16-7.2-16-16l0-256z"/></svg>
+                                    <svg class="w-6 h-6 text-gray-300 dark:text-white fill-gray-500" aria-hidden="true"
+                                         xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                                        <path d="M152 24c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 40L64 64C28.7 64 0 92.7 0 128l0 16 0 48L0 448c0 35.3 28.7 64 64 64l320 0c35.3 0 64-28.7 64-64l0-256 0-48 0-16c0-35.3-28.7-64-64-64l-40 0 0-40c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 40L152 64l0-40zM48 192l352 0 0 256c0 8.8-7.2 16-16 16L64 464c-8.8 0-16-7.2-16-16l0-256z"/>
+                                    </svg>
 
                                     <span class="ml-3" sidebar-toggle-item>Bookings</span>
                                 </a>
