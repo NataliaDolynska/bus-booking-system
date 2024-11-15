@@ -70,7 +70,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken', 
     'drf_spectacular',
     'django_api_gen',
-
+    'sslserver',
     "debug_toolbar",
 
 ]
