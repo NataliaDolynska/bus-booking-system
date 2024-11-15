@@ -86,4 +86,4 @@ def admin_upload_gtfs(request):
         else:
             return JsonResponse({'error': 'No file uploaded.'}, status=400)
     else:
-        return render(request, 'admin_upload_gtfs.html')
+        return render(request, 'gtfs/upload-gtfs.html')
