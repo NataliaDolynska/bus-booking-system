@@ -71,7 +71,6 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'django_api_gen',
 
-    "debug_toolbar",
     'livereload'
 
 ]
