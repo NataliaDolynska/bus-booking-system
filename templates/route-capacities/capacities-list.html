@@ -1,0 +1,61 @@
+<table id="capacities-table" class="min-w-full divide-y divide-gray-200 table-fixed dark:divide-gray-600">
+    <thead class="bg-gray-100 dark:bg-gray-700">
+    <tr>
+        <th scope="col"
+            class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+            Route
+        </th>
+        <th scope="col"
+            class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+            Capacity
+        </th>
+        <th scope="col"
+            class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+            Action
+        </th>
+
+
+    </tr>
+    </thead>
+    <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+
+    {% if capacities %}
+        {% for capacity in capacities %}
+            <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                <td class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400">
+                    <div class="text-base font-semibold text-gray-900 dark:text-white">{{ capacity.route.route_id }}</div>
+                </td>
+
+                <td
+                        class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
+                    {{ capacity.max_seats }}
+                </td>
+                <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                    <div hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#capacities-table" hx-ext="debug"
+                         hx-trigger="click" hx-delete="{% url 'delete_route_capacity'  capacity.id %}">
+                        <svg data-tooltip-target="tooltip-default"
+                             class="w-4 h-4 text-gray-400 dark:text-white cursor-pointer hover:text-gray-800"
+                             fill="currentColor" aria-hidden="true"
+                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                            <path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/>
+                        </svg>
+
+                        <div id="tooltip-default" role="tooltip"
+                             class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 tooltip">
+                            Delete capacity
+                            <div class="tooltip-arrow" data-popper-arrow></div>
+                        </div>
+
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+    {% endif %}
+
+    {#                            {% for product in products %}#}
+
+    {##}
+    {#                            {% endfor %}d#}
+
+    </tbody>
+</table>

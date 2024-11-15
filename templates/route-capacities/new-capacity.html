@@ -1,0 +1,95 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6">{{ form.instance.pk|default_if_none:"Create" }} Route Capacity</h1>
+        <form method="post" class="space-y-6 bg-white p-6 rounded-lg shadow-md border border-gray-300" id="route-capacity-form">
+            {% csrf_token %}
+
+            <!-- Route Search -->
+            <div>
+                <label for="route-name" class="block text-sm font-medium text-gray-700">Route</label>
+                <div class="relative">
+                    <input type="text" id="route-name" name="route-name"
+                           value="{{ form.instance.route.short_name|default:'' }}"
+                           class="mt-1 block w-full pl-3 pr-3 py-2 border-gray-300 rounded-md text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                           placeholder="Search for a route" required>
+                    <div id="route-dropdown"
+                         class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden">
+                        <!-- Route suggestions will appear here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Max Seats -->
+            <div>
+                <label for="max-seats" class="block text-sm font-medium text-gray-700">Maximum Seats</label>
+                <input type="number" id="max-seats" name="max_seats"
+                       value="{{ form.instance.max_seats|default:30 }}"
+                       class="mt-1 block w-full pl-3 pr-3 py-2 border-gray-300 rounded-md text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                       placeholder="Enter maximum seats" min="1" required>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-end">
+                <button type="submit"
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Save
+                </button>
+            </div>
+        </form>
+    </main>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        // Utility to fetch suggestions
+        async function fetchSuggestions(url, params) {
+            const response = await fetch(url + '?' + new URLSearchParams(params));
+            return response.json();
+        }
+
+        // Function to handle route search with dropdown suggestions
+        function setupSearchInput(inputId, dropdownId, url, paramsKey) {
+            const inputElement = document.getElementById(inputId);
+            const dropdown = document.getElementById(dropdownId);
+            let lastRequest = 0;
+
+            async function getSuggestions() {
+                lastRequest += 1;
+                const currentRequest = lastRequest;
+                const inputValue = inputElement.value.trim();
+                const params = { [paramsKey]: inputValue };
+
+                const data = await fetchSuggestions(url, params);
+
+                if (currentRequest === lastRequest) {
+                    dropdown.innerHTML = '';
+                    const suggestions = data.routes || [];
+                    dropdown.classList.toggle('hidden', suggestions.length === 0);
+
+                    suggestions.forEach(item => {
+                        const option = document.createElement('div');
+                        option.classList.add('px-4', 'py-2', 'hover:bg-indigo-500', 'hover:text-white', 'cursor-pointer');
+                        option.textContent = item.name || item;
+                        option.addEventListener('click', () => {
+                            inputElement.value = option.textContent;
+                            dropdown.classList.add('hidden');
+                        });
+                        dropdown.appendChild(option);
+                    });
+                }
+            }
+
+            inputElement.addEventListener('focus', getSuggestions);
+            inputElement.addEventListener('input', getSuggestions);
+            document.addEventListener('click', e => {
+                if (!dropdown.contains(e.target) && e.target !== inputElement) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        // Setup input
+        setupSearchInput('route-name', 'route-dropdown', '{% url "search_routes" %}', 'route_name');
+    </script>
+{% endblock %}

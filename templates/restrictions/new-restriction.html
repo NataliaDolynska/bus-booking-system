@@ -1,0 +1,162 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6">{{ form.instance.pk|default_if_none:"Create" }} Booking Restriction</h1>
+        <form method="post" class="space-y-6 bg-white p-6 rounded-lg shadow-md border border-gray-300" id="booking-restriction-form">
+            {% csrf_token %}
+
+            <!-- Hide Result -->
+            <div>
+                <label for="hide-result" class="block text-sm font-medium text-gray-700">Hide Result</label>
+                <select id="hide-result" name="hide_result"
+                        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <option value="false" {% if not form.instance.hide_result %}selected{% endif %}>No</option>
+                    <option value="true" {% if form.instance.hide_result %}selected{% endif %}>Yes</option>
+                </select>
+            </div>
+
+            <!-- Station Search -->
+            <div>
+                <label for="station-name" class="block text-sm font-medium text-gray-700">Station (Optional)</label>
+                <div class="relative">
+                    <input type="text" id="station-name" name="station-name"
+                           value="{{ form.instance.station.name|default:'' }}"
+                           class="mt-1 block w-full pl-3 pr-3 py-2 border-gray-300 rounded-md text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                           placeholder="Search for a station">
+                    <div id="station-dropdown"
+                         class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden">
+                        <!-- Station suggestions will appear here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Route Search -->
+            <div>
+                <label for="route-name" class="block text-sm font-medium text-gray-700">Route (Optional)</label>
+                <div class="relative">
+                    <input type="text" id="route-name" name="route-name"
+                           value="{{ form.instance.route.short_name|default:'' }}"
+                           class="mt-1 block w-full pl-3 pr-3 py-2 border-gray-300 rounded-md text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                           placeholder="Search for a route">
+                    <div id="route-dropdown"
+                         class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden">
+                        <!-- Route suggestions will appear here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Start Date -->
+            <div>
+                <label for="start-date" class="block text-sm font-medium text-gray-700">Start Date</label>
+                <input type="datetime-local" id="start-date" name="start_date"
+                       value="{{ form.instance.start_date|date:"Y-m-d\TH:i" }}"
+                       class="mt-1 block w-full pl-3 pr-3 py-2 border-gray-300 rounded-md text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+
+            <!-- End Date -->
+            <div>
+                <label for="end-date" class="block text-sm font-medium text-gray-700">End Date</label>
+                <input type="datetime-local" id="end-date" name="end_date"
+                       value="{{ form.instance.end_date|date:"Y-m-d\TH:i" }}"
+                       class="mt-1 block w-full pl-3 pr-3 py-2 border-gray-300 rounded-md text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+
+            <!-- Is Active -->
+            <div>
+                <label for="is-active" class="block text-sm font-medium text-gray-700">Is Active</label>
+                <select id="is-active" name="is_active"
+                        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <option value="false" {% if not form.instance.is_active %}selected{% endif %}>No</option>
+                    <option value="true" {% if form.instance.is_active %}selected{% endif %}>Yes</option>
+                </select>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-end">
+                <button type="submit"
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Save
+                </button>
+            </div>
+        </form>
+    </main>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        // Utility to fetch suggestions
+        async function fetchSuggestions(url, params) {
+            const response = await fetch(url + '?' + new URLSearchParams(params));
+            return response.json();
+        }
+
+        // Function to handle search inputs with dropdown suggestions
+        function setupSearchInput(inputId, dropdownId, url, paramsKey) {
+            const inputElement = document.getElementById(inputId);
+            const dropdown = document.getElementById(dropdownId);
+            let lastRequest = 0;
+
+            async function getSuggestions() {
+                lastRequest += 1;
+                const currentRequest = lastRequest;
+                const inputValue = inputElement.value.trim();
+                const params = { [paramsKey]: inputValue };
+
+                const data = await fetchSuggestions(url, params);
+
+                if (currentRequest === lastRequest) {
+                    dropdown.innerHTML = '';
+                    const suggestions = data.stations || data.routes || [];
+                    dropdown.classList.toggle('hidden', suggestions.length === 0);
+
+                    suggestions.forEach(item => {
+                        const option = document.createElement('div');
+                        option.classList.add('px-4', 'py-2', 'hover:bg-indigo-500', 'hover:text-white', 'cursor-pointer');
+                        option.textContent = item.name || item;
+                        option.addEventListener('click', () => {
+                            inputElement.value = option.textContent;
+                            dropdown.classList.add('hidden');
+                        });
+                        dropdown.appendChild(option);
+                    });
+                }
+            }
+
+            inputElement.addEventListener('focus', getSuggestions);
+            inputElement.addEventListener('input', getSuggestions);
+            document.addEventListener('click', e => {
+                if (!dropdown.contains(e.target) && e.target !== inputElement) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        // Setup inputs
+        setupSearchInput('station-name', 'station-dropdown', '{% url "search_stations" %}', 'station_name');
+        setupSearchInput('route-name', 'route-dropdown', '{% url "search_routes" %}', 'route_name');
+
+
+        document.getElementById('booking-restriction-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            const response = await fetch(window.location.href, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": '"{{ csrf_token }}"}',
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Redirect to the specified URL or show a success message
+                window.location.href = data.redirect_url;
+            } else {
+                alert(`Error: ${data.error}`);
+            }
+        });
+
+    </script>
+{% endblock %}

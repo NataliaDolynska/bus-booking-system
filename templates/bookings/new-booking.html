@@ -1,0 +1,550 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block content %}
+    <main>
+        <div class="pl-2 pt-4">
+            <button type="button"
+                    class="text-white bg-gray-400 hover:bg-gray-500 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                <a href="{% url 'bookings' %}">
+                    <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 14 10">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M13 5H1m0 0 4 4M1 5l4-4"></path>
+                    </svg>
+
+                    <span class="sr-only">Icon description</span>
+                </a>
+            </button>
+
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+            <form id="search-form">
+                <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6">
+                    <!-- Group Size Input -->
+                    <div>
+                        <label for="group-size" class="block text-sm font-medium text-gray-700 mb-1">Group Size</label>
+                        <div class="relative">
+                            <input type="number" id="group-size" name="group-size" placeholder="Enter group size"
+                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                   min="1" required>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-users text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Departure Date Input -->
+                    <div>
+                        <label for="departure-date" class="block text-sm font-medium text-gray-700 mb-1">Departure
+                            Date</label>
+                        <div class="relative">
+                            <input id="departure-date"
+                                   datepicker
+                                   datepicker-autohide="true"
+                                   datepicker-today-btn="true"
+                                   datepicker-format="yyyy-mm-dd"
+                                   type="text"
+                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                   required
+                            >
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-calendar-alt text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Departure Stop Input -->
+                    <div>
+                        <label for="departure-stop" class="block text-sm font-medium text-gray-700 mb-1">Departure
+                            Stop</label>
+                        <div class="relative">
+                            <input type="text" id="departure-stop" name="departure-stop"
+                                   placeholder="Enter departure stop"
+                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                   autocomplete="off" required>
+                            <div id="departure-dropdown"
+                                 class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden">
+                                <!-- Options will appear here -->
+                            </div>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-map-marker-alt text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Arrival Stop Input -->
+                    <div>
+                        <label for="arrival-stop" class="block text-sm font-medium text-gray-700 mb-1">Arrival
+                            Stop</label>
+                        <div class="relative">
+                            <input type="text" id="arrival-stop" name="arrival-stop" placeholder="Enter arrival stop"
+                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                   autocomplete="off" required>
+                            <div id="arrival-dropdown"
+                                 class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden">
+                                <!-- Options will appear here -->
+                            </div>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-map-marker-alt text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Time Input -->
+                    <div>
+                        <label for="time-input" class="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                        <div class="relative">
+                            <input type="time" id="time-input" name="time-input" placeholder="Select time"
+                                   min="00:00" max="23:59" value="00:00"
+                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                   required>
+
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-clock text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center mt-2">
+                            <input id="is-arrival" type="checkbox" name="is-arrival"
+                                   class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="is-arrival" class="ml-2 block text-sm text-gray-700">
+                                Is Arrival Time
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Line Name Input -->
+                    <div>
+                        <label for="line-name" class="block text-sm font-medium text-gray-700 mb-1">Line Name
+                            (Optional)</label>
+                        <div class="relative">
+                            <input type="text" id="line-name" name="line-name" placeholder="Enter line name"
+                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                   autocomplete="off">
+                            <div id="line-dropdown"
+                                 class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden">
+                                <!-- Options will appear here -->
+                            </div>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-subway text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Button -->
+                <div class="mt-8 flex justify-center">
+                    <button type="submit" disabled id="search-button"
+                            class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gray-400 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Search
+                    </button>
+                </div>
+
+                <!-- Loading Spinner -->
+                <div id="loading-spinner" class="flex justify-center mt-4 hidden">
+                    <svg class="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor"
+                              d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                </div>
+            </form>
+
+            <!-- Results Section -->
+            <div id="results" class="results-container mt-8">
+                <!-- Results will be rendered here -->
+            </div>
+        </div>
+
+
+    </main>
+{% endblock content %}
+
+{% block extra_js %}
+
+    <script>
+        // Map input IDs to parameter keys expected by the backend
+        {#const test_data = {#}
+        {#    "suggestions": [#}
+        {#        {#}
+        {#            "agency_name": "Verkehrsverbund Großraum Ingolstadt AöR",#}
+        {#            "route_id": "37",#}
+        {#            "trip_id": 2445,#}
+        {#            "date": "2024-11-20",#}
+        {#            "departure_time": "17:02",#}
+        {#            "arrival_time": "17:12",#}
+        {#            "travel_time": "10 minutes",#}
+        {#            "line_name": "70",#}
+        {#            "available_seats": 30,#}
+        {#            "is_fully_booked": false,#}
+        {#            "total_booked": 0,#}
+        {#            "max_seats": 30#}
+        {#        },#}
+        {#        {#}
+        {#            "agency_name": "Verkehrsverbund Großraum Ingolstadt AöR",#}
+        {#            "route_id": "37",#}
+        {#            "trip_id": 2446,#}
+        {#            "date": "2024-11-20",#}
+        {#            "departure_time": "17:22",#}
+        {#            "arrival_time": "17:32",#}
+        {#            "travel_time": "10 minutes",#}
+        {#            "line_name": "70",#}
+        {#            "available_seats": 30,#}
+        {#            "is_fully_booked": false,#}
+        {#            "total_booked": 0,#}
+        {#            "max_seats": 30#}
+        {#        },#}
+        {#        {#}
+        {#            "agency_name": "Verkehrsverbund Großraum Ingolstadt AöR",#}
+        {#            "route_id": "37",#}
+        {#            "trip_id": 2447,#}
+        {#            "date": "2024-11-20",#}
+        {#            "departure_time": "17:42",#}
+        {#            "arrival_time": "17:52",#}
+        {#            "travel_time": "10 minutes",#}
+        {#            "line_name": "70",#}
+        {#            "available_seats": 30,#}
+        {#            "is_fully_booked": false,#}
+        {#            "total_booked": 0,#}
+        {#            "max_seats": 30#}
+        {#        },#}
+        {#        {#}
+        {#            "agency_name": "Verkehrsverbund Großraum Ingolstadt AöR",#}
+        {#            "route_id": "37",#}
+        {#            "trip_id": 2497,#}
+        {#            "date": "2024-11-20",#}
+        {#            "departure_time": "17:12",#}
+        {#            "arrival_time": "17:22",#}
+        {#            "travel_time": "10 minutes",#}
+        {#            "line_name": "70",#}
+        {#            "available_seats": 30,#}
+        {#            "is_fully_booked": false,#}
+        {#            "total_booked": 0,#}
+        {#            "max_seats": 30#}
+        {#        },#}
+        {#        {#}
+        {#            "agency_name": "Verkehrsverbund Großraum Ingolstadt AöR",#}
+        {#            "route_id": "37",#}
+        {#            "trip_id": 2498,#}
+        {#            "date": "2024-11-20",#}
+        {#            "departure_time": "17:32",#}
+        {#            "arrival_time": "17:42",#}
+        {#            "travel_time": "10 minutes",#}
+        {#            "line_name": "70",#}
+        {#            "available_seats": 30,#}
+        {#            "is_fully_booked": false,#}
+        {#            "total_booked": 0,#}
+        {#            "max_seats": 30#}
+        {#        },#}
+        {#        {#}
+        {#            "agency_name": "Verkehrsverbund Großraum Ingolstadt AöR",#}
+        {#            "route_id": "37",#}
+        {#            "trip_id": 2499,#}
+        {#            "date": "2024-11-20",#}
+        {#            "departure_time": "17:52",#}
+        {#            "arrival_time": "18:02",#}
+        {#            "travel_time": "10 minutes",#}
+        {#            "line_name": "70",#}
+        {#            "available_seats": 30,#}
+        {#            "is_fully_booked": false,#}
+        {#            "total_booked": 0,#}
+        {#            "max_seats": 30#}
+        {#        }#}
+        {#    ]#}
+        {#}#}
+        {##}
+        {#displayResults(test_data, 20, 'Theodor-Heuss-Straße', 'Audi-Ring/Am Westpark')#}
+
+        const inputIdToParamKey = {
+            'departure-stop': 'departure_stop_name',
+            'arrival-stop': 'arrival_stop_name',
+            'line-name': 'line_name',
+        };
+        let selectedLineId = null; // Store the selected line ID
+
+        async function fetchSuggestions(url, params) {
+            const response = await fetch(url + '?' + new URLSearchParams(params));
+            return response.json();
+        }
+
+        // Function to handle search inputs with dropdown suggestions
+        function setupSearchInput(inputId, dropdownId, url, paramsKey, relatedInputIds = []) {
+            const inputElement = document.getElementById(inputId);
+            const dropdown = document.getElementById(dropdownId);
+            let lastRequest = 0;
+
+            async function getSuggestions() {
+                lastRequest += 1;
+                const currentRequest = lastRequest;
+                const inputValue = inputElement.value.trim();
+                const params = {};
+
+                // Map inputId to parameter key and set the input value
+                const paramKey = inputIdToParamKey[inputId];
+                params[paramKey] = inputValue;
+
+                // Include related input values if present
+                relatedInputIds.forEach(relatedInputId => {
+                    const relatedInputValue = document.getElementById(relatedInputId).value.trim();
+                    if (relatedInputValue) {
+                        const relatedParamKey = inputIdToParamKey[relatedInputId];
+                        params[relatedParamKey] = relatedInputValue;
+                    }
+                });
+
+                // Include selectedLineId if available and not fetching for 'line-name'
+                {#console.log("SELECTED LINE ID : " + inputId)#}
+                if (selectedLineId && inputId !== 'line-name') {
+                    params['line_id'] = selectedLineId;
+                }
+
+                // Fetch suggestions
+                const data = await fetchSuggestions(url, params);
+
+                // Update dropdown with suggestions
+                if (currentRequest === lastRequest) {
+                    let suggestions = [];
+                    if (inputId === 'departure-stop') {
+                        suggestions = data.suggested_departure_stops || [];
+                    } else if (inputId === 'arrival-stop') {
+                        suggestions = data.suggested_arrival_stops || [];
+                    } else if (inputId === 'line-name') {
+                        suggestions = data.suggested_lines || [];
+                    }
+
+                    dropdown.innerHTML = ''; // Clear existing options
+
+                    if (suggestions.length > 0) {
+                        dropdown.classList.remove('hidden');
+                        suggestions.forEach(item => {
+                            const option = document.createElement('div');
+                            option.classList.add('px-4', 'py-2', 'hover:bg-indigo-500', 'hover:text-white', 'cursor-pointer');
+
+                            if (inputId === 'line-name') {
+                                option.textContent = item.name;
+                                option.dataset.lineId = item.id; // Store the line ID
+                            } else {
+                                option.textContent = item; // For stops, item is a string (name)
+                            }
+
+                            option.addEventListener('click', () => {
+                                inputElement.value = option.textContent;
+                                dropdown.classList.add('hidden');
+
+                                if (inputId === 'line-name') {
+                                    // Store the selected line ID
+                                    selectedLineId = option.dataset.lineId;
+                                }
+
+                                validateFields();
+                            });
+
+                            dropdown.appendChild(option);
+                        });
+                    } else {
+                        dropdown.classList.add('hidden');
+                    }
+                }
+            }
+
+            // Event listeners for fetching suggestions
+            inputElement.addEventListener('focus', () => {
+                getSuggestions();
+            });
+
+            inputElement.addEventListener('input', () => {
+                if (inputId === 'line-name') {
+                    selectedLineId = null; // Reset line ID when user types
+                }
+                getSuggestions();
+            });
+
+            // Hide dropdown on outside click
+            document.addEventListener('click', (event) => {
+                if (!dropdown.contains(event.target) && event.target !== inputElement) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        // Setup the search inputs with respective URLs and related fields
+        setupSearchInput('departure-stop', 'departure-dropdown', '{% url "suggest_departure_stops" %}', 'departure_name', ['arrival-stop', 'line-name']);
+        setupSearchInput('arrival-stop', 'arrival-dropdown', '{% url "suggest_arrival_stops" %}', 'arrival_name', ['departure-stop', 'line-name']);
+        setupSearchInput('line-name', 'line-dropdown', '{% url "suggest_bus_lines" %}', 'line_name', ['departure-stop', 'arrival-stop']);
+
+        // Validation and enabling/disabling the search button
+        const requiredFields = ['#group-size', '#departure-date', '#departure-stop', '#arrival-stop', '#time-input'];
+        requiredFields.forEach(selector => document.querySelector(selector).addEventListener('input', validateFields));
+
+        function validateFields() {
+            const allFilled = requiredFields.every(selector => document.querySelector(selector).value.trim() !== '');
+            const searchButton = document.getElementById("search-button");
+            searchButton.disabled = !allFilled;
+            searchButton.classList.toggle('cursor-not-allowed', !allFilled);
+            searchButton.classList.toggle('bg-gray-400', !allFilled);
+            searchButton.classList.toggle('hover:bg-indigo-700', allFilled);
+            searchButton.classList.toggle('bg-blue-400', allFilled);
+            searchButton.classList.toggle('hover:bg-blue-700', allFilled);
+        }
+
+        // Handle form submission and display results
+        document.getElementById('search-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            // Show spinner
+            document.getElementById('loading-spinner').classList.remove('hidden');
+            const departureStopName = document.getElementById('departure-stop').value
+            const arrivalStopName = document.getElementById('arrival-stop').value
+            const numPassengers = document.getElementById('group-size').value
+            const formData = {
+                'group_size': numPassengers,
+                'date': document.getElementById('departure-date').value,
+                'departure_stop_name': departureStopName,
+                'arrival_stop_name': arrivalStopName,
+                'is_arrival': document.getElementById('is-arrival').checked,
+                'time': document.getElementById('time-input').value,
+                'line_name': document.getElementById('line-name').value || null,
+                'line_id': selectedLineId || null,
+            };
+
+            // Prepare query parameters and fetch results
+            const params = new URLSearchParams(formData);
+            const response = await fetch('{% url "search_commute_suggestions" %}?' + params.toString());
+            const data = await response.json();
+            displayResults(data, numPassengers, departureStopName, arrivalStopName);
+
+            // Hide spinner
+            document.getElementById('loading-spinner').classList.add('hidden');
+        });
+
+        function displayResults(data, numPassengers, departureStopName, arrivalStopName) {
+            const resultsContainer = document.getElementById('results');
+            resultsContainer.innerHTML = '';
+
+            if (data.suggestions && data.suggestions.length > 0) {
+                data.suggestions.forEach(item => {
+                    const card = document.createElement('div');
+                    card.classList.add('max-w-full', 'bg-white', 'border', 'border-gray-200', 'rounded-lg', 'shadow-md', 'mb-6');
+
+                    card.innerHTML = `
+                <div class="p-6">
+                    <!-- Header -->
+                    <div class="flex justify-between items-center mb-4">
+                        <h5 class="text-2xl font-bold tracking-tight text-gray-900">${item.line_name}</h5>
+                        <span class="text-sm text-gray-500">${item.date}</span>
+                    </div>
+                    <p class="text-lg text-gray-700 mb-4">${item.agency_name}</p>
+
+                    <!-- Details -->
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <svg class="w-6 h-6 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M4 3h12a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z"/>
+                                <path fill-rule="evenodd" d="M8 7a1 1 0 012 0v1h1a1 1 0 110 2H10v1a1 1 0 11-2 0V10H7a1 1 0 110-2h1V7z" clip-rule="evenodd"/>
+                            </svg>
+                            <p class="ml-2 text-gray-700"><strong>Departure:</strong> ${item.departure_time}</p>
+                        </div>
+                        <div class="flex items-center">
+                            <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M4 3h12a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z"/>
+                                <path fill-rule="evenodd" d="M8 7a1 1 0 012 0v1h1a1 1 0 110 2H10v1a1 1 0 11-2 0V10H7a1 1 0 110-2h1V7z" clip-rule="evenodd"/>
+                            </svg>
+                            <p class="ml-2 text-gray-700"><strong>Arrival:</strong> ${item.arrival_time}</p>
+                        </div>
+                        <p class="text-gray-700"><strong>Travel Time:</strong> ${item.travel_time}</p>
+                        <p class="text-gray-700"><strong>Available Seats:</strong> <span class="text-indigo-600 font-semibold">${item.available_seats}</span> / ${item.max_seats}</p>
+                    </div>
+
+                    <!-- Action Button -->
+${item.is_fully_booked
+                        ? `<button disabled class="mt-6 w-full inline-flex items-center justify-center px-4 py-2 text-base font-medium text-white bg-gray-400 rounded-lg cursor-not-allowed">
+            Fully Booked
+       </button>`
+                        : `<button onclick="bookTrip( ${item.route_id},   ${item.trip_id}, '${item.date}', ${numPassengers}, '${departureStopName}', '${arrivalStopName}')" class="mt-6 w-full inline-flex items-center justify-center px-4 py-2 text-base font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300">
+            Book Now
+       </button>`
+                    }
+                </div>
+            `;
+
+                    resultsContainer.appendChild(card);
+                });
+            } else {
+                resultsContainer.innerHTML = `
+            <div class="text-center">
+                <p class="text-lg text-gray-700">No results found.</p>
+            </div>
+        `;
+            }
+        }
+
+
+        function bookTrip(route_id, tripId, date, numPassengers, departureStopName, arrivalStopName) {
+            // Prepare the data to send
+            const data = {
+                trip_id: tripId,
+                route_id: route_id,
+                date: date,
+                num_passengers: numPassengers,
+                departure_stop_name: departureStopName,
+                arrival_stop_name: arrivalStopName
+            };
+
+            // Send an AJAX POST request to the backend
+
+            fetch('{% url "new-bookings" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')  // CSRF token for security
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Handle the response
+                    if (data.success) {
+                        // Booking successful
+                        alert('Booking successful!');
+                        // Redirect to confirmation page or update UI accordingly
+                        sucessBookingUrl = '{% url 'success-booking' %}'
+                        window.location.href = sucessBookingUrl
+                    } else {
+                        // Booking failed
+                        {#alert('Booking failed: ' + data.error);#}
+                        // If user needs to log in, redirect them
+                        if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An unexpected error occurred.');
+                });
+        }
+
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let cookie of cookies) {
+                    const trimmedCookie = cookie.trim();
+                    // Does this cookie string begin with the name we want?
+                    if (trimmedCookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(trimmedCookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+
+    </script>
+
+{% endblock extra_js %}
+

@@ -1,0 +1,27 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block content %}
+    <main class="flex items-center justify-center min-h-screen bg-gray-50">
+        <div class="max-w-lg w-full bg-white shadow-lg rounded-lg p-8 text-center">
+            <!-- Success message -->
+            <h2 class="text-3xl font-bold text-green-600 mb-4">Booking Successful!</h2>
+            <p class="text-gray-600 mb-8">Your booking has been confirmed. You can make another booking or view your booking list.</p>
+
+            <!-- Button container -->
+            <div class="flex justify-center space-x-4">
+                <!-- Make Another Booking button -->
+                <a href="{% url 'new-bookings' %}"
+                   class="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg shadow hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 focus:outline-none">
+                    Make Another Booking
+                </a>
+
+                <!-- View All Bookings button -->
+                <a href="{% url 'bookings' %}"
+                   class="px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg shadow hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 focus:outline-none">
+                    View All Bookings
+                </a>
+            </div>
+        </div>
+    </main>
+{% endblock content %}
