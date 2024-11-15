@@ -19,10 +19,10 @@
             <div>
                 <label for="station-name" class="block text-sm font-medium text-gray-700">Station (Optional)</label>
                 <div class="relative">
-                    <input type="text" id="station-name" name="station-name"
-                           value="{{ form.instance.station.name|default:'' }}"
+                    <input type="text" id="station-name" name="station_name"
                            class="mt-1 block w-full pl-3 pr-3 py-2 border-gray-300 rounded-md text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                            placeholder="Search for a station">
+                    <input type="hidden" id="station-id" name="station_id"> <!-- Hidden input for station ID -->
                     <div id="station-dropdown"
                          class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden">
                         <!-- Station suggestions will appear here -->
@@ -34,10 +34,10 @@
             <div>
                 <label for="route-name" class="block text-sm font-medium text-gray-700">Route (Optional)</label>
                 <div class="relative">
-                    <input type="text" id="route-name" name="route-name"
-                           value="{{ form.instance.route.short_name|default:'' }}"
+                    <input type="text" id="route-name" name="route_name"
                            class="mt-1 block w-full pl-3 pr-3 py-2 border-gray-300 rounded-md text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                            placeholder="Search for a route">
+                    <input type="hidden" id="route-id" name="route_id"> <!-- Hidden input for route ID -->
                     <div id="route-dropdown"
                          class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden">
                         <!-- Route suggestions will appear here -->
@@ -84,15 +84,14 @@
 
 {% block extra_js %}
     <script>
-        // Utility to fetch suggestions
         async function fetchSuggestions(url, params) {
             const response = await fetch(url + '?' + new URLSearchParams(params));
             return response.json();
         }
 
-        // Function to handle search inputs with dropdown suggestions
-        function setupSearchInput(inputId, dropdownId, url, paramsKey) {
+        function setupSearchInput(inputId, hiddenInputId, dropdownId, url, paramsKey) {
             const inputElement = document.getElementById(inputId);
+            const hiddenInputElement = document.getElementById(hiddenInputId);
             const dropdown = document.getElementById(dropdownId);
             let lastRequest = 0;
 
@@ -112,9 +111,14 @@
                     suggestions.forEach(item => {
                         const option = document.createElement('div');
                         option.classList.add('px-4', 'py-2', 'hover:bg-indigo-500', 'hover:text-white', 'cursor-pointer');
-                        option.textContent = item.name || item;
+                        if(inputId == 'station-name') {
+                            option.innerHTML = `<strong>${item.name}</strong> | ${item.stop_id}`; // Display name and ID
+                        } else {
+                            option.innerHTML = `<strong>${item.name}</strong>`; // Display name and ID
+                        }
                         option.addEventListener('click', () => {
-                            inputElement.value = option.textContent;
+                            inputElement.value = item.name;
+                            hiddenInputElement.value =  item.stop_id | item.id; // Save station/route ID
                             dropdown.classList.add('hidden');
                         });
                         dropdown.appendChild(option);
@@ -123,7 +127,10 @@
             }
 
             inputElement.addEventListener('focus', getSuggestions);
-            inputElement.addEventListener('input', getSuggestions);
+            inputElement.addEventListener('input', () => {
+                hiddenInputElement.value = ''; // Clear the hidden input if the user types
+                getSuggestions();
+            });
             document.addEventListener('click', e => {
                 if (!dropdown.contains(e.target) && e.target !== inputElement) {
                     dropdown.classList.add('hidden');
@@ -131,10 +138,9 @@
             });
         }
 
-        // Setup inputs
-        setupSearchInput('station-name', 'station-dropdown', '{% url "search_stations" %}', 'station_name');
-        setupSearchInput('route-name', 'route-dropdown', '{% url "search_routes" %}', 'route_name');
-
+        // Setup for stations and routes
+        setupSearchInput('station-name', 'station-id', 'station-dropdown', '{% url "search_stations" %}', 'station_name');
+        setupSearchInput('route-name', 'route-id', 'route-dropdown', '{% url "search_routes" %}', 'route_name');
 
         document.getElementById('booking-restriction-form').addEventListener('submit', async function (e) {
             e.preventDefault();
@@ -143,7 +149,7 @@
             const response = await fetch(window.location.href, {
                 method: "POST",
                 headers: {
-                    "X-CSRFToken": '"{{ csrf_token }}"}',
+                    "X-CSRFToken": "{{ csrf_token }}",
                 },
                 body: formData,
             });
@@ -157,6 +163,6 @@
                 alert(`Error: ${data.error}`);
             }
         });
-
     </script>
 {% endblock %}
+

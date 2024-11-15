@@ -78,9 +78,9 @@ def search_stations(request):
         # Filter stops by name (case-insensitive partial match)
         stops = stops.filter(name__icontains=station_name)
 
-    # Return a list of unique stop names
-    stop_names = stops.values_list("name", flat=True).distinct()
-    return JsonResponse({"stations": list(stop_names)})
+    # Return a list of stops with their IDs and names
+    stop_data = stops.values("stop_id", "name")
+    return JsonResponse({"stations": list(stop_data)})
 
 
 @login_required(login_url='/users/signin/')
