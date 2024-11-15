@@ -1,24 +1,17 @@
 import json
-from lib2to3.fixes.fix_input import context
 from django.db.models import Sum, Value, IntegerField
-from django.db.models.functions import Coalesce
 
 from django.views.decorators.vary import vary_on_headers
 from loguru import logger
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
 from django.db.models import OuterRef, Subquery, F, Q, Sum, Count
 from django.utils.dateparse import parse_date, parse_time
 from datetime import datetime, timedelta
 from .models import BookingRestriction, RouteCapacity
-from django.shortcuts import render, get_object_or_404
 from apps.bookings.models import Booking
-from django.core import serializers
 from django.db import transaction
 
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse
-from apps.gtfs.models import Stop, Route
 from .models import BookingRestriction
 from django.views.decorators.http import require_http_methods
 
